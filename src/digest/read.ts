@@ -56,7 +56,8 @@ export const readNight: ReadNight = (runsDir, night) => {
       runs: lines.length,
       retries: lines.filter((l) => l.status === 'retry').length,
       lastStatus: last.status,
-      lastError: last.error,
+      // Most recent error seen that night, even if a later run went ok.
+      lastError: sorted.findLast((l) => l.error !== null)?.error ?? null,
       firstAt: first.at,
       lastAt: last.at,
     };

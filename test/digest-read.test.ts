@@ -27,8 +27,13 @@ describe('readNight', () => {
       ['notes/backup', 'lane-07', 1, 0, 'fail'],
       ['rig/rotate-logs', 'lane-07', 1, 0, 'ok'],
     ]);
-    const backup = rows.find((r) => r.job === 'notes/backup');
-    expect(backup?.lastError).toBe('quota exceeded');
+    expect(rows.map((r) => [r.job, r.lastError])).toEqual([
+      ['digest/render', null],
+      ['fixtures/refresh', 'upstream 503'],
+      ['lane/sync', 'lock held'],
+      ['notes/backup', 'quota exceeded'],
+      ['rig/rotate-logs', null],
+    ]);
     const sync = rows.find((r) => r.job === 'lane/sync');
     expect(sync?.firstAt).toBe('2026-10-28T23:00:06+01:00');
     expect(sync?.lastAt).toBe('2026-10-29T05:00:04+01:00');
@@ -56,7 +61,7 @@ describe('readNight', () => {
       '{"at":"2026-01-02T01:00:00+01:00","job":"a","status":"fail","owner":"x","error":"boom"}',
     ]);
     const [row] = readNight(runs, '2026-01-02').rows;
-    expect(row).toMatchObject({ lastStatus: 'ok', lastError: null, firstAt: '2026-01-02T01:00:00+01:00' });
+    expect(row).toMatchObject({ lastStatus: 'ok', lastError: 'boom', firstAt: '2026-01-02T01:00:00+01:00' });
   });
 
   it('counts lines with a missing field or an unknown status as bad', () => {
