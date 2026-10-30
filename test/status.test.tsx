@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
+import { nightCounts } from '../src/status.js';
 
 const config = { adapter: 'shim', installed: '2026-10-29T14:06:00+01:00', beatEverySeconds: 60, runsDir: 'runs' };
 
@@ -11,6 +12,17 @@ describe('status board', () => {
     expect(res.status).toBe(200);
     expect(html).toContain('TEST-MARKER');
     expect(html).toContain('2026-10-28');
+  });
+
+  it('links each night to its digest with ok / retry / fail counts', async () => {
+    const html = await (await createApp(config).request('/')).text();
+    expect(html).toContain('<a href="/digest/2026-10-27">2026-10-27</a>');
+    expect(html).toContain('<a href="/digest/2026-10-28">2026-10-28</a>');
+    expect(html).toMatch(/ok \d+ · retry \d+ · fail \d+/);
+  });
+
+  it('gives no counts for a night whose file is unreadable', () => {
+    expect(nightCounts('runs', '2026-01-01')).toBeNull();
   });
 
   it('health answers with the lane id', async () => {
